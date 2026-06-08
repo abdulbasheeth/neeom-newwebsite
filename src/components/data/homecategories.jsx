@@ -26,7 +26,7 @@ export const categories = [
   id: "chemicals",
   slug: "chemicals-and-accessories",
   label: "Laundry Chemicals & Accessories",
-  icon: <FaPumpSoap color="#E63946" size={22} />, // 🔴 change color here
+  icon: "🫧", 
   description: "Ensure spotless results with our high-quality laundry chemicals and accessories...",
   image: "https://neomhotelsupplies.com/wp-content/uploads/2025/04/Effective-industrial-cleaning-ma.jpg",
 },

@@ -18,7 +18,7 @@ import trolleyIconUrl from "../../assets/bins.svg";
 export const categories = [
   { id: "amenities", label: "Guest Amenities & Equipments", icon: "🧴" },
   { id: "linens", label: "Bed & Bath Linens", icon: "🛏️" },
-  { id: "chemicals", label: "Laundry Chemicals & Accessories", icon: "🫙" },
+  { id: "chemicals", label: "Laundry Chemicals & Accessories", icon: "🫧" },
   { id: "eco-bags", label: "Eco-Friendly Sustainable Bags", icon: "♻️" },
   { id: "non-woven", label: "Non Woven Bags & Covers", icon: "🛍️" },
  { id: "ppe", label: "Non woven Disposable Essentials PPE", icon: <FontAwesomeIcon icon={faShirt} className="w-4 h-4 md:w-5 md:h-5 block text-sky-500 group-hover:text-white" /> },

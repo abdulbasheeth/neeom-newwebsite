@@ -8,7 +8,7 @@ import bins from '../../assets/bins.svg';
 const categories = [
   { id: "amenities", label: "Guest Amenities & Equipments", icon: <span className="block text-base md:text-lg leading-none">🧴</span> },
   { id: "linens", label: "Bed & Bath Linens", icon: <span className="block text-base md:text-lg leading-none">🛏️</span> },
-  { id: "chemicals", label: "Laundry Chemicals & Accessories", icon: <span className="block text-base md:text-lg leading-none">🫙</span> },
+ { id: "chemicals", label: "Laundry Chemicals & Accessories", icon: <span className="block text-base md:text-lg leading-none">🫧</span> },
   { id: "eco-bags", label: "Eco-Friendly Sustainable Bags", icon: <span className="block text-base md:text-lg leading-none">♻️</span> },
   { id: "non-woven", label: "Non Woven Bags & Covers", icon: <span className="block text-base md:text-lg leading-none">🛍️</span> },
   { id: "ppe", label: "Non woven Disposable Essentials PPE", icon: <FontAwesomeIcon icon={faShirt} className="w-4 h-4 md:w-5 md:h-5 block text-sky-500 group-hover:text-white" /> },
