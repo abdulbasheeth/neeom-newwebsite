@@ -95,7 +95,7 @@ const BubbleBackground = () => {
       return x - Math.floor(x);
     };
     
-    const size = 40 + random() * 80;
+    const size = 15 + random() * 30;
     const duration = 10 + random() * 10;
     const delay = random() * -15;
     const isLeftToRight = Math.random() > 0.5;
