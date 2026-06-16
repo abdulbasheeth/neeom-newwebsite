@@ -18,18 +18,65 @@ const Header = () => {
   const [desktopDownloadsOpen, setDesktopDownloadsOpen] = useState(false);
   const [bubbles, setBubbles] = useState([]);
   const [activeSection, setActiveSection] = useState(null);
+  const [mobileMenuTop, setMobileMenuTop] = useState(80);
 
   const location = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef(null);
   const desktopDropdownRef = useRef(null);
   const isScrollingRef = useRef(false);
+  const originalBodyOverflow = useRef("");
+
+  // Responsive Logo Height Calculation
+  const getLogoHeight = useCallback(() => {
+    if (window.innerWidth < 640) {
+      return scrolled ? "30px" : "40px"; // mobile
+    }
+    if (window.innerWidth < 1024) {
+      return scrolled ? "40px" : "50px"; // tablet
+    }
+    return scrolled ? "60px" : "80px"; // desktop
+  }, [scrolled]);
 
   const getHeaderHeight = useCallback(() => {
     return headerRef.current?.offsetHeight || 72;
   }, []);
 
-  // Wait for an element to exist in DOM (with retries)
+  const updateMobileMenuTop = useCallback(() => {
+    if (mobileOpen) {
+      setMobileMenuTop(getHeaderHeight() + 8);
+    }
+  }, [mobileOpen, getHeaderHeight]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      updateMobileMenuTop();
+      originalBodyOverflow.current = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      window.addEventListener("scroll", updateMobileMenuTop);
+      window.addEventListener("resize", updateMobileMenuTop);
+      return () => {
+        document.body.style.overflow = originalBodyOverflow.current;
+        window.removeEventListener("scroll", updateMobileMenuTop);
+        window.removeEventListener("resize", updateMobileMenuTop);
+      };
+    } else {
+      document.body.style.overflow = originalBodyOverflow.current;
+    }
+  }, [mobileOpen, updateMobileMenuTop]);
+
+  // Close mobile menu when resizing above xl breakpoint (1280px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280 && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [mobileOpen]);
+
   const waitForElement = useCallback((elementId, maxAttempts = 20, interval = 100) => {
     return new Promise((resolve) => {
       let attempts = 0;
@@ -47,7 +94,6 @@ const Header = () => {
     });
   }, []);
 
-  // Reliable scroll to element
   const scrollToElement = useCallback(async (elementId) => {
     if (isScrollingRef.current) return;
     isScrollingRef.current = true;
@@ -59,9 +105,7 @@ const Header = () => {
       }
 
       if (element) {
-        // Wait for next frame to ensure layout is complete
         await new Promise(requestAnimationFrame);
-        // Small extra delay for any dynamic content (images, fonts)
         await new Promise(resolve => setTimeout(resolve, 50));
 
         const headerHeight = getHeaderHeight();
@@ -74,14 +118,12 @@ const Header = () => {
         });
       }
     } finally {
-      // Reset scrolling flag after scroll completes (smooth scroll takes time)
       setTimeout(() => {
         isScrollingRef.current = false;
       }, 500);
     }
   }, [getHeaderHeight, waitForElement]);
 
-  // Intersection Observer for active section highlight (DO NOT update URL hash)
   useEffect(() => {
     const sections = ["about", "contact"];
     const observers = [];
@@ -114,12 +156,10 @@ const Header = () => {
     };
   }, [getHeaderHeight]);
 
-  // Handle initial hash on page load (only once)
   useEffect(() => {
     if (location.hash) {
       const elementId = location.hash.slice(1);
       if (elementId === "about" || elementId === "contact") {
-        // Delay to ensure page is fully painted
         setTimeout(() => {
           scrollToElement(elementId);
           setActiveSection(elementId);
@@ -127,36 +167,40 @@ const Header = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
-
-  // Floating bubbles (unchanged)
-  const generateBubbles = useCallback(() => {
-    const bubbleCount = window.innerWidth < 640 ? 15 : 30;
-    const newBubbles = [];
-    for (let i = 0; i < bubbleCount; i++) {
-      const size = Math.random() * 24 + 6;
-      const left = Math.random() * 100;
-      const bottom = Math.random() * 50;
-      const duration = Math.random() * 10 + 8;
-      const delay = Math.random() * -10;
-      const opacity = Math.random() * 0.4 + 0.1;
-      newBubbles.push(
-        <div
-          key={i}
-          className="bubble"
-          style={{
-            width: `${size}px`,
-            height: `${size}px`,
-            left: `${left}%`,
-            bottom: `${bottom}%`,
-            animation: `rise ${duration}s ease-in infinite ${delay}s, sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate`,
-            opacity: opacity,
-          }}
-        />
-      );
-    }
-    setBubbles(newBubbles);
   }, []);
+
+const generateBubbles = useCallback(() => {
+  const bubbleCount = window.innerWidth < 640 ? 15 : 30;
+  const newBubbles = [];
+  for (let i = 0; i < bubbleCount; i++) {
+    const size = Math.random() * 24 + 6;
+    const left = Math.random() * 100;
+    const bottom = Math.random() * 50;
+    const duration = Math.random() * 10 + 8;
+    const delay = Math.random() * -10;
+    const opacity = Math.random() * 0.4 + 0.1;
+    newBubbles.push(
+      <div
+        key={i}
+        className="bubble"
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          left: `${left}%`,
+          bottom: `${bottom}%`,
+          animation: `rise ${duration}s ease-in infinite ${delay}s, sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate`,
+          opacity: opacity,
+          // Change the gradient to blue
+          background: `radial-gradient(circle at 25% 25%, rgba(14, 165, 233, 0.8), rgba(14, 165, 233, 0.1))`,
+          // Add a subtle blue glow in the shadow
+          boxShadow: `inset 0 0 10px rgba(14, 165, 233, 0.4), 0 4px 10px rgba(14, 165, 233, 0.1)`,
+          border: `1px solid rgba(14, 165, 233, 0.3)`,
+        }}
+      />
+    );
+  }
+  setBubbles(newBubbles);
+}, []);
 
   useEffect(() => {
     generateBubbles();
@@ -188,16 +232,21 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // MAIN NAVIGATION HANDLER - everything goes through here
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && mobileOpen) setMobileOpen(false);
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [mobileOpen]);
+
   const handleNavClick = useCallback(
     async (e, link) => {
       e.preventDefault();
-      // Close all menus
       setMobileOpen(false);
       setMobileDropdownOpen(false);
       setDesktopDownloadsOpen(false);
 
-      // For Home or Products (non-hash links)
       if (!link.isHash) {
         navigate(link.path);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -205,20 +254,15 @@ const Header = () => {
         return;
       }
 
-      // For About / Contact (hash links)
       if (location.pathname !== "/") {
-        // Navigate to home page with hash
         navigate(`/#${link.elementId}`);
-        // Wait for navigation to complete, then scroll
         setTimeout(() => {
           scrollToElement(link.elementId);
           setActiveSection(link.elementId);
         }, 200);
       } else {
-        // Already on home page, just scroll
         await scrollToElement(link.elementId);
         setActiveSection(link.elementId);
-        // Optionally update hash without triggering a scroll again
         if (window.location.hash !== `#${link.elementId}`) {
           history.pushState(null, null, `#${link.elementId}`);
         }
@@ -300,7 +344,7 @@ const Header = () => {
         }
         .bubble {
           position: absolute;
-          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4));
+          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.9));
           border-radius: 50%;
           pointer-events: none;
           will-change: transform, opacity;
@@ -322,7 +366,25 @@ const Header = () => {
           mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
           -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
         }
+        .mobile-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .mobile-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .mobile-scroll::-webkit-scrollbar-thumb {
+          background-color: rgba(0,0,0,0.1);
+          border-radius: 20px;
+        }
       `}</style>
+
+      {/* Backdrop overlay – visible only below xl */}
+      <div
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-30 transition-opacity duration-300 ${
+          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        } xl:hidden`}
+        onClick={() => setMobileOpen(false)}
+      />
 
       <nav
         ref={headerRef}
@@ -333,26 +395,27 @@ const Header = () => {
           }`}
       >
         <div className="bubbles-container">{bubbles}</div>
-        <div className="px-3 sm:px-5 lg:px-8 relative z-10">
-          <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? "py-2" : "py-3"}`}>
+
+        <div className="px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? "py-2 lg:py-3" : "py-3 lg:py-4"}`}>
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 md:gap-4 group flex-shrink-0 p-1">
+            <Link to="/" className="flex items-center gap-2 md:gap-4 group flex-shrink-0 p-1 -ml-2 sm:ml-0">
               <img
                 src={neomLogo}
                 alt="NEOM Hospitality Supplies"
                 className="transition-all duration-500 h-auto object-contain"
-                style={{ height: scrolled ? "60px" : "80px" }}
+                style={{ height: getLogoHeight() }}
               />
             </Link>
 
-            {/* Desktop Nav */}
-            <div className="hidden lg:flex items-center gap-2 uppercase">
+            {/* Desktop Navigation – visible only from xl upwards */}
+            <div className="hidden xl:flex items-center flex-1 justify-end gap-1 lg:gap-2 uppercase">
               {navLinks.map((link) => (
                 <a
                   key={link.path}
                   href={link.isHash ? `/#${link.elementId}` : link.path}
                   onClick={(e) => handleNavClick(e, link)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
                     ${isActive(link)
                       ? "bg-sky-600 text-white"
                       : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"
@@ -366,7 +429,7 @@ const Header = () => {
               <div className="relative" ref={desktopDropdownRef}>
                 <Button
                   variant="outline"
-                  className="rounded-full border-sky-600 text-sky-700 flex items-center gap-1"
+                  className="rounded-full border-sky-600 text-sky-700 flex items-center gap-1 hover:bg-sky-50"
                   onClick={() => setDesktopDownloadsOpen(!desktopDownloadsOpen)}
                 >
                   Downloads
@@ -376,7 +439,7 @@ const Header = () => {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-10">
                     <button
                       onClick={handleDownloadPDF}
-                      className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors"
+                      className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors text-left"
                     >
                       <FileText className="w-4 h-4" />
                       Company Profile PDF
@@ -385,72 +448,76 @@ const Header = () => {
                 )}
               </div>
 
-              <Button asChild className="rounded-full bg-sky-600 hover:bg-sky-700">
+              <Button asChild className="rounded-full bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-200 transition-all ml-2">
                 <a href="/#contact" onClick={handleQuoteClick}>Request Quote</a>
               </Button>
             </div>
 
-            {/* Mobile Menu Toggle */}
-            <button className="lg:hidden p-2 rounded-lg hover:bg-sky-50" onClick={() => setMobileOpen(!mobileOpen)}>
+            {/* Mobile Toggle – hidden on xl and above */}
+            <button
+              className="xl:hidden p-2 -mr-2 rounded-lg hover:bg-sky-50 active:bg-sky-100 transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
               {mobileOpen ? <X className="w-6 h-6 text-sky-700" /> : <Menu className="w-6 h-6 text-sky-700" />}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer – only visible below xl */}
       <div
-        className={`lg:hidden fixed z-40 transition-all duration-300
-          ${mobileOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"}`}
+        className={`fixed left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-in-out origin-top
+          ${mobileOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-95 pointer-events-none"} xl:hidden`}
         style={{
-          top: `${getHeaderHeight() + 8}px`,
-          left: "50%",
-          transform: mobileOpen ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(-10px)",
-          width: "94%",
-          maxHeight: "calc(100vh - 100px)",
+          top: `${mobileMenuTop}px`,
+          width: "92%",
+          maxWidth: "450px",
+          maxHeight: `calc(100vh - ${mobileMenuTop + 16}px)`,
         }}
       >
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl overflow-hidden">
-          <div className="p-4 overflow-y-auto">
-            <div className="flex flex-col gap-2">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl overflow-hidden flex flex-col h-full">
+          <div className="p-5 overflow-y-auto mobile-scroll pb-8">
+            <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <a
                   key={link.path}
                   href={link.isHash ? `/#${link.elementId}` : link.path}
                   onClick={(e) => handleNavClick(e, link)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-2xl uppercase text-sm font-semibold transition-all
+                  className={`flex items-center justify-between px-4 py-3.5 rounded-2xl uppercase text-sm font-semibold transition-all
                     ${isActive(link) ? "bg-sky-100 text-sky-700" : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"}`}
                 >
                   {link.label}
-                  {isActive(link) && <div className="w-2 h-2 rounded-full bg-sky-600" />}
+                  {isActive(link) && <div className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />}
                 </a>
               ))}
             </div>
 
-            <div className="border-t border-gray-100 mt-4 pt-4">
+            <div className="border-t border-gray-100 mt-5 pt-4">
               <button
                 onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl uppercase text-sm font-semibold text-gray-700 hover:bg-sky-50"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl uppercase text-sm font-semibold text-gray-700 hover:bg-sky-50 transition-colors"
               >
                 Downloads
                 <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`} />
               </button>
-              <div className={`overflow-hidden transition-all duration-300 ${mobileDropdownOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
+
+              <div className={`overflow-hidden transition-all duration-300 ${mobileDropdownOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
                 <button
                   onClick={handleDownloadPDF}
-                  className="w-full flex items-center gap-2 px-6 py-3 rounded-xl text-sm text-gray-600 hover:bg-sky-50 hover:text-sky-700"
+                  className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm text-gray-600 hover:bg-sky-50 hover:text-sky-700 transition-colors"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-4 h-4 text-sky-500" />
                   Company Profile PDF
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-gray-100">
-              <Button variant="outline" asChild className="rounded-xl border-sky-600 text-sky-700 h-11 uppercase text-xs">
+            <div className="grid grid-cols-2 gap-3 mt-8 pt-6 border-t border-gray-100">
+              <Button variant="outline" asChild className="rounded-xl border-sky-600 text-sky-700 h-12 uppercase text-xs font-bold tracking-wide hover:bg-sky-50">
                 <Link to="/products">Products</Link>
               </Button>
-              <Button asChild className="rounded-xl bg-sky-600 hover:bg-sky-700 h-11 uppercase text-xs">
+              <Button asChild className="rounded-xl bg-sky-600 hover:bg-sky-700 h-12 uppercase text-xs font-bold tracking-wide shadow-lg shadow-sky-200">
                 <a href="/#contact" onClick={handleQuoteClick}>Request Quote</a>
               </Button>
             </div>

@@ -36,13 +36,14 @@ export const allProducts = [
   ...productImages,
   ...folder2Images,
   ...folder3Images,
-  ...folder9Images,
   ...folder8Images,
+  ...folder9Images,
+  ...folder10Images,
   ...folder4Images,
-  ...folder5Images,
+ ...folder5Images,
   ...folder7Images,
   ...folder6Images,
-  ...folder10Images,
+ 
 ];
 
 const CategoryButton = ({ category, isSelected, onClick, isMobile = false }) => {
@@ -173,7 +174,7 @@ const Product = () => {
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block lg:col-span-3" aria-label="Product categories">
             <div className="sticky top-24 space-y-2 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar pr-2">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3 sticky top-5 bg-slate-50 py-2 z-10">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-7 px-3 sticky top-7 bg-slate-50 py-2 z-10">
                 Categories
               </h3>
               <CategoryButton
@@ -198,7 +199,7 @@ const Product = () => {
             {/* Search Section */}
             <div ref={searchRef} className="mb-8 scroll-mt-20">
               <h1 className="text-3xl font-bold text-slate-900 mb-2">Product Search</h1>
-              <p className="text-slate-500 mt-13 mb-4">Find the perfect items for your business needs.</p>
+              <p className="text-slate-500 mt-15 mb-4">Find the perfect items for your business needs.</p>
 
               <div className="relative">
                 <label htmlFor="search" className="sr-only">Search by product name</label>
