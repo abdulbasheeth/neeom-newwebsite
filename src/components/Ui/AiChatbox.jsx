@@ -59,7 +59,7 @@ const QUESTIONS = [
 ];
 
 // Target phone number to receive lead details (UAE)
-const TARGET_PHONE = '+971568249900';
+const TARGET_PHONE = '+971527087748]';
 
 // Helper: Generate clean WhatsApp message (Double sanitized)
 const generateWhatsAppMessage = (answers) => {
