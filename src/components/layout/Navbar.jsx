@@ -11,6 +11,22 @@ const navLinks = [
   { label: "Contact", path: "/contact", isHash: true, elementId: "contact" },
 ];
 
+// 🔽 Define your PDFs here – add or remove items as needed
+const pdfItems = [
+  {
+    id: "profile",
+    label: "Company Profile PDF",
+    url: "/neom-profile.pdf",
+    fileName: "Neom_Hospitality_Profile.pdf",
+  },
+  {
+    id: "catalog",
+    label: "Product Catalog PDF",
+    url: "/product-catalog.pdf",
+    fileName: "Neom_Product_Catalog.pdf",
+  },
+];
+
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -77,52 +93,59 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileOpen]);
 
-  const waitForElement = useCallback((elementId, maxAttempts = 20, interval = 100) => {
-    return new Promise((resolve) => {
-      let attempts = 0;
-      const checkExist = setInterval(() => {
-        const element = document.getElementById(elementId);
-        if (element) {
-          clearInterval(checkExist);
-          resolve(element);
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkExist);
-          resolve(null);
+  const waitForElement = useCallback(
+    (elementId, maxAttempts = 20, interval = 100) => {
+      return new Promise((resolve) => {
+        let attempts = 0;
+        const checkExist = setInterval(() => {
+          const element = document.getElementById(elementId);
+          if (element) {
+            clearInterval(checkExist);
+            resolve(element);
+          } else if (attempts >= maxAttempts) {
+            clearInterval(checkExist);
+            resolve(null);
+          }
+          attempts++;
+        }, interval);
+      });
+    },
+    []
+  );
+
+  const scrollToElement = useCallback(
+    async (elementId) => {
+      if (isScrollingRef.current) return;
+      isScrollingRef.current = true;
+
+      try {
+        let element = document.getElementById(elementId);
+        if (!element) {
+          element = await waitForElement(elementId);
         }
-        attempts++;
-      }, interval);
-    });
-  }, []);
 
-  const scrollToElement = useCallback(async (elementId) => {
-    if (isScrollingRef.current) return;
-    isScrollingRef.current = true;
+        if (element) {
+          await new Promise(requestAnimationFrame);
+          await new Promise((resolve) => setTimeout(resolve, 50));
 
-    try {
-      let element = document.getElementById(elementId);
-      if (!element) {
-        element = await waitForElement(elementId);
+          const headerHeight = getHeaderHeight();
+          const elementPosition =
+            element.getBoundingClientRect().top + window.scrollY;
+          const offsetPosition = elementPosition - headerHeight - 20;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      } finally {
+        setTimeout(() => {
+          isScrollingRef.current = false;
+        }, 500);
       }
-
-      if (element) {
-        await new Promise(requestAnimationFrame);
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        const headerHeight = getHeaderHeight();
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        const offsetPosition = elementPosition - headerHeight - 20;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-      }
-    } finally {
-      setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 500);
-    }
-  }, [getHeaderHeight, waitForElement]);
+    },
+    [getHeaderHeight, waitForElement]
+  );
 
   useEffect(() => {
     const sections = ["about", "contact"];
@@ -145,7 +168,10 @@ const Header = () => {
     sections.forEach((id) => {
       const element = document.getElementById(id);
       if (element) {
-        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        const observer = new IntersectionObserver(
+          observerCallback,
+          observerOptions
+        );
         observer.observe(element);
         observers.push(observer);
       }
@@ -169,38 +195,36 @@ const Header = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-const generateBubbles = useCallback(() => {
-  const bubbleCount = window.innerWidth < 640 ? 15 : 30;
-  const newBubbles = [];
-  for (let i = 0; i < bubbleCount; i++) {
-    const size = Math.random() * 24 + 6;
-    const left = Math.random() * 100;
-    const bottom = Math.random() * 50;
-    const duration = Math.random() * 10 + 8;
-    const delay = Math.random() * -10;
-    const opacity = Math.random() * 0.4 + 0.1;
-    newBubbles.push(
-      <div
-        key={i}
-        className="bubble"
-        style={{
-          width: `${size}px`,
-          height: `${size}px`,
-          left: `${left}%`,
-          bottom: `${bottom}%`,
-          animation: `rise ${duration}s ease-in infinite ${delay}s, sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate`,
-          opacity: opacity,
-          // Change the gradient to blue
-          background: `radial-gradient(circle at 25% 25%, rgba(14, 165, 233, 0.8), rgba(14, 165, 233, 0.1))`,
-          // Add a subtle blue glow in the shadow
-          boxShadow: `inset 0 0 10px rgba(14, 165, 233, 0.4), 0 4px 10px rgba(14, 165, 233, 0.1)`,
-          border: `1px solid rgba(14, 165, 233, 0.3)`,
-        }}
-      />
-    );
-  }
-  setBubbles(newBubbles);
-}, []);
+  const generateBubbles = useCallback(() => {
+    const bubbleCount = window.innerWidth < 640 ? 15 : 30;
+    const newBubbles = [];
+    for (let i = 0; i < bubbleCount; i++) {
+      const size = Math.random() * 24 + 6;
+      const left = Math.random() * 100;
+      const bottom = Math.random() * 50;
+      const duration = Math.random() * 10 + 8;
+      const delay = Math.random() * -10;
+      const opacity = Math.random() * 0.4 + 0.1;
+      newBubbles.push(
+        <div
+          key={i}
+          className="bubble"
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            left: `${left}%`,
+            bottom: `${bottom}%`,
+            animation: `rise ${duration}s ease-in infinite ${delay}s, sway ${Math.random() * 3 + 2}s ease-in-out infinite alternate`,
+            opacity: opacity,
+            background: `radial-gradient(circle at 25% 25%, rgba(14, 165, 233, 0.8), rgba(14, 165, 233, 0.1))`,
+            boxShadow: `inset 0 0 10px rgba(14, 165, 233, 0.4), 0 4px 10px rgba(14, 165, 233, 0.1)`,
+            border: `1px solid rgba(14, 165, 233, 0.3)`,
+          }}
+        />
+      );
+    }
+    setBubbles(newBubbles);
+  }, []);
 
   useEffect(() => {
     generateBubbles();
@@ -224,7 +248,10 @@ const generateBubbles = useCallback(() => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (desktopDropdownRef.current && !desktopDropdownRef.current.contains(event.target)) {
+      if (
+        desktopDropdownRef.current &&
+        !desktopDropdownRef.current.contains(event.target)
+      ) {
         setDesktopDownloadsOpen(false);
       }
     };
@@ -284,21 +311,21 @@ const generateBubbles = useCallback(() => {
     [location.pathname, activeSection]
   );
 
-  const handleDownloadPDF = async () => {
-    const pdfUrl = "/neom-profile.pdf";
+  // 🔽 Generic PDF download handler
+  const handleDownloadPDF = async (item) => {
     try {
-      const response = await fetch(pdfUrl);
+      const response = await fetch(item.url);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "Neom_Hospitality_Profile.pdf";
+      link.download = item.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      console.error("Error downloading PDF:", error);
     }
     setMobileDropdownOpen(false);
     setMobileOpen(false);
@@ -389,17 +416,25 @@ const generateBubbles = useCallback(() => {
       <nav
         ref={headerRef}
         className={`fixed left-0 right-0 z-50 transition-all duration-300
-          ${scrolled
-            ? "top-2 mx-auto w-[95%] lg:max-w-7xl bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-[3rem]"
-            : "top-0 bg-white border-b border-gray-100"
+          ${
+            scrolled
+              ? "top-2 mx-auto w-[95%] lg:max-w-7xl bg-white/90 backdrop-blur-xl border border-white/50 shadow-xl rounded-[3rem]"
+              : "top-0 bg-white border-b border-gray-100"
           }`}
       >
         <div className="bubbles-container">{bubbles}</div>
 
         <div className="px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className={`flex items-center justify-between transition-all duration-300 ${scrolled ? "py-2 lg:py-3" : "py-3 lg:py-4"}`}>
+          <div
+            className={`flex items-center justify-between transition-all duration-300 ${
+              scrolled ? "py-2 lg:py-3" : "py-3 lg:py-4"
+            }`}
+          >
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 md:gap-4 group flex-shrink-0 p-1 -ml-2 sm:ml-0">
+            <Link
+              to="/"
+              className="flex items-center gap-2 md:gap-4 group flex-shrink-0 p-1 -ml-2 sm:ml-0"
+            >
               <img
                 src={neomLogo}
                 alt="NEOM Hospitality Supplies"
@@ -416,9 +451,10 @@ const generateBubbles = useCallback(() => {
                   href={link.isHash ? `/#${link.elementId}` : link.path}
                   onClick={(e) => handleNavClick(e, link)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
-                    ${isActive(link)
-                      ? "bg-sky-600 text-white"
-                      : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"
+                    ${
+                      isActive(link)
+                        ? "bg-sky-600 text-white"
+                        : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"
                     }`}
                 >
                   {link.label}
@@ -430,26 +466,40 @@ const generateBubbles = useCallback(() => {
                 <Button
                   variant="outline"
                   className="rounded-full border-sky-600 text-sky-700 flex items-center gap-1 hover:bg-sky-50"
-                  onClick={() => setDesktopDownloadsOpen(!desktopDownloadsOpen)}
+                  onClick={() =>
+                    setDesktopDownloadsOpen(!desktopDownloadsOpen)
+                  }
                 >
                   Downloads
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${desktopDownloadsOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      desktopDownloadsOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </Button>
                 {desktopDownloadsOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-10">
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors text-left"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Company Profile PDF
-                    </button>
+                    {pdfItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleDownloadPDF(item)}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors text-left"
+                      >
+                        <FileText className="w-4 h-4" />
+                        {item.label}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
 
-              <Button asChild className="rounded-full bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-200 transition-all ml-2">
-                <a href="/#contact" onClick={handleQuoteClick}>Request Quote</a>
+              <Button
+                asChild
+                className="rounded-full bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-200 transition-all ml-2"
+              >
+                <a href="/#contact" onClick={handleQuoteClick}>
+                  Request Quote
+                </a>
               </Button>
             </div>
 
@@ -459,7 +509,11 @@ const generateBubbles = useCallback(() => {
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="w-6 h-6 text-sky-700" /> : <Menu className="w-6 h-6 text-sky-700" />}
+              {mobileOpen ? (
+                <X className="w-6 h-6 text-sky-700" />
+              ) : (
+                <Menu className="w-6 h-6 text-sky-700" />
+              )}
             </button>
           </div>
         </div>
@@ -468,7 +522,11 @@ const generateBubbles = useCallback(() => {
       {/* Mobile Drawer – only visible below xl */}
       <div
         className={`fixed left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-in-out origin-top
-          ${mobileOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-95 pointer-events-none"} xl:hidden`}
+          ${
+            mobileOpen
+              ? "opacity-100 scale-y-100"
+              : "opacity-0 scale-y-95 pointer-events-none"
+          } xl:hidden`}
         style={{
           top: `${mobileMenuTop}px`,
           width: "92%",
@@ -485,10 +543,16 @@ const generateBubbles = useCallback(() => {
                   href={link.isHash ? `/#${link.elementId}` : link.path}
                   onClick={(e) => handleNavClick(e, link)}
                   className={`flex items-center justify-between px-4 py-3.5 rounded-2xl uppercase text-sm font-semibold transition-all
-                    ${isActive(link) ? "bg-sky-100 text-sky-700" : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"}`}
+                    ${
+                      isActive(link)
+                        ? "bg-sky-100 text-sky-700"
+                        : "text-gray-700 hover:bg-sky-50 hover:text-sky-700"
+                    }`}
                 >
                   {link.label}
-                  {isActive(link) && <div className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />}
+                  {isActive(link) && (
+                    <div className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />
+                  )}
                 </a>
               ))}
             </div>
@@ -499,26 +563,48 @@ const generateBubbles = useCallback(() => {
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl uppercase text-sm font-semibold text-gray-700 hover:bg-sky-50 transition-colors"
               >
                 Downloads
-                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${mobileDropdownOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    mobileDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
-              <div className={`overflow-hidden transition-all duration-300 ${mobileDropdownOpen ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm text-gray-600 hover:bg-sky-50 hover:text-sky-700 transition-colors"
-                >
-                  <FileText className="w-4 h-4 text-sky-500" />
-                  Company Profile PDF
-                </button>
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  mobileDropdownOpen
+                    ? "max-h-40 opacity-100 mt-1"
+                    : "max-h-0 opacity-0"
+                }`}
+              >
+                {pdfItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleDownloadPDF(item)}
+                    className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm text-gray-600 hover:bg-sky-50 hover:text-sky-700 transition-colors"
+                  >
+                    <FileText className="w-4 h-4 text-sky-500" />
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-8 pt-6 border-t border-gray-100">
-              <Button variant="outline" asChild className="rounded-xl border-sky-600 text-sky-700 h-12 uppercase text-xs font-bold tracking-wide hover:bg-sky-50">
+              <Button
+                variant="outline"
+                asChild
+                className="rounded-xl border-sky-600 text-sky-700 h-12 uppercase text-xs font-bold tracking-wide hover:bg-sky-50"
+              >
                 <Link to="/products">Products</Link>
               </Button>
-              <Button asChild className="rounded-xl bg-sky-600 hover:bg-sky-700 h-12 uppercase text-xs font-bold tracking-wide shadow-lg shadow-sky-200">
-                <a href="/#contact" onClick={handleQuoteClick}>Request Quote</a>
+              <Button
+                asChild
+                className="rounded-xl bg-sky-600 hover:bg-sky-700 h-12 uppercase text-xs font-bold tracking-wide shadow-lg shadow-sky-200"
+              >
+                <a href="/#contact" onClick={handleQuoteClick}>
+                  Request Quote
+                </a>
               </Button>
             </div>
           </div>

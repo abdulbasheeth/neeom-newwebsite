@@ -164,10 +164,6 @@ const ContactSection = () => {
                       <a href="mailto:info@neomhs.com" className="text-blue-700 hover:text-blue-800 break-all">
                         info@neomhotelsupplies.com
                       </a>
-                      <br />
-                      <a href="mailto:sales@neomhs.com" className="text-blue-700 hover:text-blue-800 break-all">
-                        neomhospitalitydxb@gmail.com
-                      </a>
                     </>
                   }
                 />

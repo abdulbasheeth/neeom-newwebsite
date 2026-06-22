@@ -263,7 +263,7 @@ const Footer = () => {
                     <div className="flex flex-col">
                       <span className="text-xs text-slate-500 font-medium">Email Us</span>
                       <span className="text-sm text-slate-300 group-hover:text-white transition-colors whitespace-nowrap">info@neomhotelsupplies.com</span>
-                       <span className="text-sm text-slate-300 group-hover:text-white transition-colors whitespace-nowrap">neomhospitalitydxb@gmail.com</span>
+              
 
                     
                     </div>

@@ -59,20 +59,20 @@ const QUESTIONS = [
 ];
 
 // Target phone number to receive lead details (UAE)
-const TARGET_PHONE = '+971568249900';
+const TARGET_PHONE = '+971527087748';
 
 // Helper: Generate clean WhatsApp message (Double sanitized)
 const generateWhatsAppMessage = (answers) => {
   const labels = {
-    serviceCategory: '🧹 Service category',
-    orderType: '🏢 Order type',
-    productType: '📦 Product type',
-    frequency: '🔄 Frequency',
-    mobile: '📱 Mobile number',
-    isOsse: '🏨 OS&E project'
+    serviceCategory: 'Service category',
+    orderType: 'Order type',
+    productType: 'Product type',
+    frequency: 'Frequency',
+    mobile: 'Mobile number',
+    isOsse: 'OS&E project'
   };
 
-  let message = '🛎️ New lead from Quote Assistant\n\n';
+  let message = 'New lead from Quote Assistant\n\n';
   for (const [key, label] of Object.entries(labels)) {
     if (answers[key]) {
       // Sanitize the label AND the value
@@ -81,7 +81,7 @@ const generateWhatsAppMessage = (answers) => {
       message += `${cleanLabel}: ${cleanValue}\n`;
     }
   }
-  message += '\n🙏 Please contact this lead. Thank you!';
+  message += '\n Please contact this lead. Thank you!';
   
   // Final global strip to be absolutely sure
   message = sanitizeText(message);
